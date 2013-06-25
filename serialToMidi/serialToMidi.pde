@@ -75,15 +75,15 @@ draw( )
       {
 //        byte[] message = charToByte( midiBuffer );
         
-        if ( sysExBuffer[SYSEX_HEADER_INDEX] == HEADER )
+        if ( sysExBuffer[SYSEX_HEADER_INDEX] == (byte) HEADER )
         {
-          if ( sysExBuffer[SYSEX_FOOTER_INDEX] != FOOTER )
+          if ( sysExBuffer[SYSEX_FOOTER_INDEX] != (byte) FOOTER )
           {
             println( "Bad SysEx FOOTER" );
           } else 
           {
-           if ( sysExBuffer[SYSEX_COMMAND_INDEX] == PITCH_BEND_COMMAND  
-             || sysExBuffer[SYSEX_COMMAND_INDEX] == AFTER_TOUCH_COMMAND ) // if it's a pitchbend or an aftertouch
+           if ( sysExBuffer[SYSEX_COMMAND_INDEX] == (byte) PITCH_BEND_COMMAND  
+             || sysExBuffer[SYSEX_COMMAND_INDEX] == (byte) AFTER_TOUCH_COMMAND ) // if it's a pitchbend or an aftertouch
            {
              output.sendSysex( sysExBuffer );  
            } else 
