@@ -11,6 +11,7 @@ Serial myPort;  // The serial port
 MidiInput input;
 MidiOutput output;
 char[] midiBuffer;
+byte[] sysExBuffer;
 int inc=0;
 
 final int BUFFER_SIZE = 11;
@@ -33,9 +34,11 @@ final char AFTER_TOUCH_COMMAND = 0x21;
 
 
 
-void setup( ) 
+void 
+setup( ) 
 {
-  midiBuffer = new char[BUFFER_SIZE];
+  midiBuffer  = new char[BUFFER_SIZE];
+  sysExBuffer = new byte[BUFFER_SIZE]; 
   input = RWMidi.getInputDevices()[1].createInput( this );
   println( RWMidi.getInputDevices()[1] );
   output = RWMidi.getOutputDevices()[1].createOutput( );
@@ -45,12 +48,14 @@ void setup( )
 }
 
 
-void draw( ) 
+void 
+draw( ) 
 {
    while ( myPort.available() > 0 ) 
    { 
       int inByte = myPort.read();
-      midiBuffer[inc] = (char)inByte;
+      midiBuffer[inc]  = (char) inByte;
+      sysExBuffer[inc] = (byte) inByte;//inByte;
       inc++;
       
       if( inc > 2 ) // is it a MIDI Message ?
@@ -68,32 +73,22 @@ void draw( )
       }
       if ( inc > 10 ) // is it a SysEx Message ?
       {
-        byte[] message = new byte[BUFFER_SIZE];
-        for ( int i = 0; i < BUFFER_SIZE; i = i + 1 ) // byte casting loop, TODO: Change that, there is certainly a better way...
+//        byte[] message = charToByte( midiBuffer );
+        
+        if ( sysExBuffer[SYSEX_HEADER_INDEX] == HEADER )
         {
-          message[i] = (byte) midiBuffer[i];
-          print ( midiBuffer[i] );
-          print ( " - " );
-          print ( message[i] );
-          print ( " | " );
-        }
-        println( );
-
-        if ( midiBuffer[SYSEX_HEADER_INDEX] == HEADER )
-        {
-          if ( midiBuffer[SYSEX_FOOTER_INDEX] != FOOTER )
+          if ( sysExBuffer[SYSEX_FOOTER_INDEX] != FOOTER )
           {
             println( "Bad SysEx FOOTER" );
           } else 
           {
-           if ( midiBuffer[SYSEX_COMMAND_INDEX] == PITCH_BEND_COMMAND  
-             || midiBuffer[SYSEX_COMMAND_INDEX] == AFTER_TOUCH_COMMAND ) // if it's a pitchbend or an aftertouch
+           if ( sysExBuffer[SYSEX_COMMAND_INDEX] == PITCH_BEND_COMMAND  
+             || sysExBuffer[SYSEX_COMMAND_INDEX] == AFTER_TOUCH_COMMAND ) // if it's a pitchbend or an aftertouch
            {
-             println( " sysex " + message);
-             output.sendSysex( message );  
+             output.sendSysex( sysExBuffer );  
            } else 
            {
-             println( "I don't know that command, dude" );
+             println( "I don't know that command  " );
            }
           }
         }
@@ -103,18 +98,30 @@ void draw( )
       }
   }
 }
+
+// char[] to byte[] conversion
+//byte[]
+//charToByte( char[] buffer )
+//{
+//  return new byte[] {buffer[i]}
+//}
+
+
 // EVENTS
-void noteOnReceived(Note note) 
+void 
+noteOnReceived(Note note) 
 {
  // println("note on " + note.getPitch());
 }
 
-void sysexReceived(rwmidi.SysexMessage msg) 
+void 
+sysexReceived(rwmidi.SysexMessage msg) 
 {
   println("sysex " + msg);
 }
 
-void mousePressed() // Test SysEx output.
+void
+mousePressed() // Test SysEx output.
 {
   int ret = output.sendSysex(new byte[] {(byte)HEADER, 1, 2, 3, 4, (byte)FOOTER});
 }
