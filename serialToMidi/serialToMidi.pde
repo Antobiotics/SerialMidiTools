@@ -57,9 +57,9 @@ draw( )
       int inByte = myPort.read();
 
       midiBuffer[inc]  = (char) inByte;     
-      sysExBuffer[inc] = (byte) inByte;//inByte;
+      sysExBuffer[inc] = (byte) inByte;//inByte; 
       inc++;
-      
+
       if( inc > 2 ) // is it a MIDI Message ?
       {
         // We only set inc to zero if a MIDI message is sent.
@@ -77,25 +77,35 @@ draw( )
       {        
         for ( int i = 0; i < inc; i = i + 1 )
         {
-           print( hex ( sysExBuffer[i] )+ " |" ); 
+           print( hex( sysExBuffer[i] )+ " |" ); 
         }
         println();
         if ( sysExBuffer[SYSEX_HEADER_INDEX] == (byte) HEADER )
         {
           if ( sysExBuffer[SYSEX_FOOTER_INDEX] != (byte) FOOTER )
           {
-            println( "Bad SysEx FOOTER" );
+            print( "Bad SysEx FOOTER" );
+            println( hex( (byte) sysExBuffer[SYSEX_FOOTER_INDEX] ) );
+
           } else 
           {
            if ( sysExBuffer[SYSEX_COMMAND_INDEX] == (byte) PITCH_BEND_COMMAND  
              || sysExBuffer[SYSEX_COMMAND_INDEX] == (byte) AFTER_TOUCH_COMMAND ) // if it's a pitchbend or an aftertouch
            {
+             print( "sending sysex...Result: " );
              int result = output.sendSysex( sysExBuffer );  
+             println( result );
            } else 
            {
-             println( "I don't know that command  " );
+             println( "I don't know that command:  " );
+             println( hex( (byte) sysExBuffer[SYSEX_COMMAND_INDEX] ) );
+
            }
           }
+        } else 
+        {
+         print( "Bad HEADER !" ); 
+         println( hex( (byte) sysExBuffer[SYSEX_HEADER_INDEX] ) );
         }
         // What ever happens if inc is greater than 10,
         // we reset it.
