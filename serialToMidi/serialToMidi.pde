@@ -53,8 +53,10 @@ draw( )
 {
    while ( myPort.available() > 0 ) 
    { 
+      println( "-------" );
       int inByte = myPort.read();
-      midiBuffer[inc]  = (char) inByte;
+
+      midiBuffer[inc]  = (char) inByte;     
       sysExBuffer[inc] = (byte) inByte;//inByte;
       inc++;
       
@@ -71,10 +73,13 @@ draw( )
             inc = 0;
           }
       }
-      if ( inc > 10 ) // is it a SysEx Message ?
-      {
-//        byte[] message = charToByte( midiBuffer );
-        
+      if ( inc == 11 ) // is it a SysEx Message ?
+      {        
+        for ( int i = 0; i < inc; i = i + 1 )
+        {
+           print( hex ( sysExBuffer[i] )+ " |" ); 
+        }
+        println();
         if ( sysExBuffer[SYSEX_HEADER_INDEX] == (byte) HEADER )
         {
           if ( sysExBuffer[SYSEX_FOOTER_INDEX] != (byte) FOOTER )
@@ -85,7 +90,7 @@ draw( )
            if ( sysExBuffer[SYSEX_COMMAND_INDEX] == (byte) PITCH_BEND_COMMAND  
              || sysExBuffer[SYSEX_COMMAND_INDEX] == (byte) AFTER_TOUCH_COMMAND ) // if it's a pitchbend or an aftertouch
            {
-             output.sendSysex( sysExBuffer );  
+             int result = output.sendSysex( sysExBuffer );  
            } else 
            {
              println( "I don't know that command  " );
@@ -98,14 +103,6 @@ draw( )
       }
   }
 }
-
-// char[] to byte[] conversion
-//byte[]
-//charToByte( char[] buffer )
-//{
-//  return new byte[] {buffer[i]}
-//}
-
 
 // EVENTS
 void 
